@@ -17,6 +17,7 @@
     <span class="cash-value" id="cashValue">$0</span>
   </div>
   <button id="dutyShiftBtn" class="topbar-btn duty-btn">🎖 Duty Shift</button>
+  <button id="campaignBtn" class="topbar-btn campaign-btn">⚔ Campaign</button>
   <button id="helpBtn" class="topbar-btn" title="Replay tutorial">? Help</button>
   <button id="resetBtn" class="topbar-btn reset-btn" title="Wipe save and restart">Reset</button>
 </header>
@@ -53,6 +54,18 @@
   </div>
 </div>
 
+<!-- Campaign overlay: Army roster + Levels -->
+<div id="campaignOverlay" class="overlay hidden">
+  <div class="overlay-panel campaign-panel">
+    <button class="overlay-close" id="campaignCloseBtn">&times;</button>
+    <div class="campaign-tabs">
+      <button class="campaign-tab-btn active" id="tabArmyBtn">Army</button>
+      <button class="campaign-tab-btn" id="tabLevelsBtn">Levels</button>
+    </div>
+    <div id="campaignContent"></div>
+  </div>
+</div>
+
 <!-- Welcome back / offline progress modal -->
 <div id="welcomeBackOverlay" class="overlay hidden">
   <div class="overlay-panel small-panel">
@@ -76,5 +89,6 @@
 <script src="spanish-data.js"></script>
 <script src="game.js"></script>
 <script src="spanish.js"></script>
+<script src="army.js"></script>
 </body>
 </html>

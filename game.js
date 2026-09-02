@@ -73,9 +73,19 @@ const BUILDING_TYPES = {
     inputs: { intel: 2, trainedPersonnel: 2 }, outputs: { money: 60 }, moraleOutput: 0,
     blurb: 'Revenue building. Needs Intel + Trained Personnel. Grants a base-wide output bonus that scales with Morale.',
   },
+  black_market: {
+    id: 'black_market', name: 'Black Market', tier: 3, size: 2, baseCost: 6000,
+    inputs: { fuel: 5, logistics: 4 }, outputs: { money: 55 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs Fuel + Logistics. An alternate cash-out path that skips Trained Personnel and Intel entirely.',
+  },
+  intel_brokerage: {
+    id: 'intel_brokerage', name: 'Intel Brokerage', tier: 3, size: 2, baseCost: 7000,
+    inputs: { intel: 3, trainedPersonnel: 2 }, outputs: { money: 65 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs Intel + Trained Personnel — competes directly with Command Center for both.',
+  },
 };
 
-const BUILD_ORDER = ['solar_array', 'recruit_barracks', 'fuel_depot', 'motor_pool', 'training_ground', 'mess_hall', 'airfield', 'command_center'];
+const BUILD_ORDER = ['solar_array', 'recruit_barracks', 'fuel_depot', 'motor_pool', 'training_ground', 'mess_hall', 'airfield', 'command_center', 'black_market', 'intel_brokerage'];
 
 // Precompute resource -> [producer types] / [consumer types], once.
 const BUILDING_PRODUCERS = {};
@@ -410,6 +420,7 @@ function shortCode(type) {
     solar_array: 'SOL', recruit_barracks: 'BAR', fuel_depot: 'FUE',
     motor_pool: 'MTR', training_ground: 'TRN', mess_hall: 'PX',
     airfield: 'AIR', command_center: 'CMD',
+    black_market: 'BLK', intel_brokerage: 'INT',
   }[type] || '?';
 }
 
@@ -786,6 +797,7 @@ function init() {
     if (!state.spanish) state.spanish = { sets: {}, totalCorrect: 0, totalAttempts: 0 };
     if (!state.tutorial) state.tutorial = { step: 0, done: false };
   }
+  if (window.ArmyModule) window.ArmyModule.ensureState(state);
 
   buildGridDom();
 

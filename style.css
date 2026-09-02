@@ -96,6 +96,8 @@ h2:first-child { margin-top: 0; }
 .topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
 .duty-btn { border-color: var(--accent-dim); color: var(--accent); }
 .duty-btn:hover { background: var(--accent-dim); color: #fff; }
+.campaign-btn { border-color: #a8523f; color: #e08a6f; }
+.campaign-btn:hover { background: #a8523f; color: #fff; }
 .reset-btn { color: var(--text-dim); font-size: 11px; padding: 6px 10px; }
 .reset-btn:hover { border-color: var(--red); color: var(--red); }
 
@@ -245,6 +247,8 @@ h2:first-child { margin-top: 0; }
 .tile.b-mess_hall { background: #5a2e73; }
 .tile.b-airfield { background: #146b73; }
 .tile.b-command_center { background: #7a1f24; }
+.tile.b-black_market { background: #2e2e38; }
+.tile.b-intel_brokerage { background: #1f5c4d; }
 
 @keyframes pulse-outline {
   0%, 100% { outline-color: var(--accent); }
@@ -509,3 +513,167 @@ h2:first-child { margin-top: 0; }
   border-radius: 5px;
   margin-bottom: 12px;
 }
+
+/* ---------------- Campaign (Army + Levels) ---------------- */
+
+.campaign-panel { width: 760px; max-width: 94vw; }
+
+.campaign-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.campaign-tab-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 8px 18px;
+  border-radius: 5px 5px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.campaign-tab-btn.active { color: #e08a6f; border-color: #a8523f; background: #241713; }
+.campaign-tab-btn:hover:not(.active) { color: var(--text); }
+
+.campaign-section-title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 18px 0 8px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+.campaign-section-title:first-child { margin-top: 0; }
+
+.army-stats-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat-chip {
+  flex: 1 1 120px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+}
+.stat-chip .v { font-family: var(--mono); font-size: 17px; font-weight: 700; color: #e08a6f; }
+.stat-chip .l { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+.recruit-row, .upgrade-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.recruit-card, .upgrade-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid #a8523f;
+  border-radius: 5px;
+  padding: 9px 10px;
+  cursor: pointer;
+}
+.recruit-card:hover, .upgrade-card:hover { border-color: #a8523f; }
+.recruit-card.disabled, .upgrade-card.disabled { opacity: 0.45; cursor: default; }
+.recruit-name, .upgrade-name { font-size: 12.5px; font-weight: 700; }
+.recruit-cap { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+.recruit-cost, .upgrade-cost { font-family: var(--mono); font-size: 10.5px; color: var(--amber); margin-top: 4px; }
+.upgrade-effect { font-size: 10.5px; color: var(--text-dim); margin-top: 3px; }
+
+.roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.unit-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+}
+.unit-card.low-hp { border-color: var(--red); }
+.unit-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.unit-icon { font-size: 14px; }
+.unit-name { font-size: 12px; font-weight: 700; flex: 1; }
+.unit-level { font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); }
+.unit-bar-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.unit-bar-label { font-size: 9px; color: var(--text-dim); width: 20px; }
+.unit-bar-track { flex: 1; height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden; border: 1px solid var(--line); }
+.unit-bar-fill.hp { height: 100%; background: var(--accent); }
+.low-hp .unit-bar-fill.hp { background: var(--red); }
+.unit-bar-fill.xp { height: 100%; background: var(--blue); }
+.unit-bar-value { font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); width: 56px; text-align: right; }
+.unit-stats-row { font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); margin: 6px 0 8px; }
+.equip-slots-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.equip-slot {
+  width: 26px; height: 26px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-family: var(--mono); font-weight: 700;
+  border: 1px solid var(--line-bright);
+}
+.equip-slot.empty { color: var(--text-dim); cursor: pointer; background: var(--bg-3); }
+.equip-slot.empty:hover { border-color: var(--accent); color: var(--accent); }
+.equip-slot.filled { color: #fff; border-color: transparent; }
+.equip-slot.filled.tier1 { background: #3d5a28; }
+.equip-slot.filled.tier2 { background: #1f4d73; }
+.equip-slot.filled.tier3 { background: #7a1f24; }
+.no-slots { font-size: 10px; color: var(--text-dim); }
+
+.equip-picker {
+  margin-top: 14px;
+  background: var(--bg-2);
+  border: 1px solid #a8523f;
+  border-radius: 6px;
+  padding: 12px;
+}
+.equip-picker-title { font-size: 12.5px; font-weight: 700; margin-bottom: 10px; }
+.equip-picker-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.equip-option { background: var(--bg-3); border: 1px solid var(--line-bright); border-radius: 5px; padding: 8px; cursor: pointer; }
+.equip-option:hover { border-color: var(--accent); }
+.equip-option.disabled { opacity: 0.4; cursor: default; }
+.eq-opt-name { font-size: 12px; font-weight: 700; }
+.eq-opt-bonus { font-size: 10.5px; color: var(--accent); margin: 3px 0; }
+.eq-opt-cost { font-family: var(--mono); font-size: 10px; color: var(--amber); }
+
+.level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.level-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid #a8523f;
+  border-radius: 6px;
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
+}
+.level-card:hover { border-color: #a8523f; }
+.level-card.locked { opacity: 0.4; cursor: default; }
+.level-card.locked:hover { border-color: var(--line); }
+.level-card.won { border-left-color: var(--accent); }
+.level-num { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+.level-name { font-size: 13px; font-weight: 700; margin: 4px 0; }
+.level-power { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+.level-reward { font-size: 10.5px; color: var(--amber); margin-top: 4px; }
+.level-won-badge { position: absolute; top: 8px; right: 10px; font-size: 10px; color: var(--accent); font-weight: 700; }
+
+.battle-anim { text-align: center; padding: 60px 20px; }
+.battle-anim-text { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 20px; }
+.battle-anim-bar { height: 8px; background: var(--bg-3); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); max-width: 320px; margin: 0 auto; }
+.battle-anim-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a8523f, var(--amber)); animation: battle-fill 1.9s ease forwards; }
+@keyframes battle-fill { from { width: 0%; } to { width: 100%; } }
+
+.battle-result { text-align: center; padding: 10px; }
+.battle-banner { font-size: 30px; font-weight: 800; letter-spacing: 0.06em; }
+.battle-result.victory .battle-banner { color: var(--accent); }
+.battle-result.defeat .battle-banner { color: var(--red); }
+.battle-summary { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin: 8px 0 4px; }
+.battle-rewards { font-size: 14px; font-weight: 700; color: var(--amber); margin-bottom: 16px; }
+.battle-rewards.defeat-note { color: var(--text-dim); font-weight: 500; font-size: 12px; }
+.battle-log {
+  text-align: left;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+.battle-log-row {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 0;
+  opacity: 0;
+  animation: log-in 0.3s ease forwards;
+}
+@keyframes log-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+.battle-log-hit { color: var(--text); }
+.battle-log-hit b { color: var(--amber); }
+.battle-log-kia { color: var(--red); font-weight: 700; }
