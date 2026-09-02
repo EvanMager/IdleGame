@@ -860,10 +860,17 @@ function init() {
   el.helpBtn.addEventListener('click', restartTutorial);
 
   el.resetBtn.addEventListener('click', () => {
-    if (confirm('Wipe your save and restart the game from scratch? This cannot be undone.')) {
-      localStorage.removeItem(SAVE_KEY);
-      location.reload();
-    }
+    document.getElementById('resetConfirmOverlay').classList.remove('hidden');
+  });
+  document.getElementById('resetCancelBtn').addEventListener('click', () => {
+    document.getElementById('resetConfirmOverlay').classList.add('hidden');
+  });
+  document.getElementById('resetConfirmBtn').addEventListener('click', () => {
+    // Reload fires beforeunload first, which would otherwise call saveState() and
+    // immediately re-write the save we're about to delete. Unregister it first.
+    window.removeEventListener('beforeunload', saveState);
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
   });
 
   el.dutyShiftBtn.addEventListener('click', () => {

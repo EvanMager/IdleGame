@@ -404,6 +404,11 @@ h2:first-child { margin-top: 0; }
   font-weight: 700;
   font-size: 13px;
 }
+.primary-btn.reset-confirm-btn {
+  background: #7a231f;
+  border-color: var(--red);
+}
+.primary-btn.reset-confirm-btn:hover { background: var(--red); }
 .primary-btn:hover { background: var(--accent); }
 .primary-btn:disabled { opacity: 0.4; cursor: default; }
 .ghost-btn {
