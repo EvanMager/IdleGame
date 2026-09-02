@@ -249,6 +249,9 @@ h2:first-child { margin-top: 0; }
 .tile.b-command_center { background: #7a1f24; }
 .tile.b-black_market { background: #2e2e38; }
 .tile.b-intel_brokerage { background: #1f5c4d; }
+.tile.b-language_institute { background: #4a3a6b; }
+.tile.b-contractor_hq { background: #6b3a1f; }
+.tile.b-arms_export_terminal { background: #8a4a12; }
 
 @keyframes pulse-outline {
   0%, 100% { outline-color: var(--accent); }

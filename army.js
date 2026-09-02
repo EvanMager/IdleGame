@@ -130,9 +130,12 @@ function livingCountByType(state, type) {
 }
 
 function getRecruitCost(state, type) {
-  const army = ensureState(state);
   const def = UNIT_DEFS[type];
-  const scale = Math.pow(RECRUIT_SCALE, army.recruitedCount[type] || 0);
+  // Scales off the CURRENT living count, not total-ever-recruited: a loss should cost you the
+  // unit and the ground you retreat to, not a permanently inflated price to rebuild to where
+  // you already were. Combat here is auto-resolved with real variance and no player-skill
+  // lever, so a run of bad luck shouldn't also tax the player's economy forever.
+  const scale = Math.pow(RECRUIT_SCALE, livingCountByType(state, type));
   const cost = {};
   for (const r in def.cost) cost[r] = Math.round(def.cost[r] * scale);
   return cost;
@@ -251,13 +254,14 @@ function resolveBattle(state, levelId) {
   for (const u of living) armyPower += unitPower(u, level);
   const ratio = armyPower / level.enemyPower;
   const victory = ratio >= 1;
-  // Victories chip away at HP (a bigger power margin means a cleaner win); defeats scale
-  // up fast enough to guarantee real casualties once you're badly overmatched — deploying
-  // into a fight you have no business winning should be able to wipe your squad, the same
-  // way overbuying a Tier 3 building before its supply chain exists wastes your investment.
+  // Victories chip away at HP (a bigger power margin means a cleaner win). A narrow or
+  // moderate defeat (ratio down to ~0.5) is real risk but not a guaranteed wipe — only a
+  // severe mismatch (ratio well under ~0.3) reliably kills the squad, the same way overbuying
+  // a Tier 3 building before its supply chain exists wastes your investment: going in badly
+  // unprepared should hurt, but merely losing a close, reasonable fight shouldn't be a wipe.
   const severity = victory
     ? clamp(0.15 - (ratio - 1) * 0.1, 0.05, 0.3)
-    : clamp(0.6 + (1 - ratio) * 1.2, 0.6, 2.2);
+    : clamp(0.15 + (1 - ratio) * 1.0, 0.15, 1.8);
 
   const xpPool = victory ? level.xpReward : Math.round(level.xpReward * 0.25);
   const events = [];

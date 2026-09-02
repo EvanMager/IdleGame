@@ -13,7 +13,9 @@ const SCALING = 1.15;
 const EXPAND_BASE_COST = 150;
 const EXPAND_SCALING = 1.045;
 const COMMAND_CENTER_BONUS = 0.10; // +10% global output per Command Center at 100 morale
-const STARTING_CASH = 1500;
+const LANGUAGE_INSTITUTE_BONUS = 0.15; // +15% Duty Shift cash-per-card per Institute, scaled by its throttle
+const SPOILS_PER_LEVEL = 1.5; // $/min tribute per cleared campaign level, scaled by level number
+const STARTING_CASH = 4000;
 const MAX_OFFLINE_SECONDS = 24 * 60 * 60;
 const OFFLINE_STEP_MIN = 1; // simulate offline time in 1-minute steps
 const LIVE_TICK_MS = 1000;
@@ -34,58 +36,74 @@ const RESOURCE_META = {
 
 const BUILDING_TYPES = {
   solar_array: {
-    id: 'solar_array', name: 'Solar Array', tier: 1, size: 1, baseCost: 500,
+    id: 'solar_array', name: 'Solar Array', tier: 1, size: 1, baseCost: 400,
     inputs: {}, outputs: { power: 5 }, moraleOutput: 0,
     blurb: 'Raw power generation. No inputs required.',
   },
   recruit_barracks: {
-    id: 'recruit_barracks', name: 'Recruit Barracks', tier: 1, size: 1, baseCost: 500,
+    id: 'recruit_barracks', name: 'Recruit Barracks', tier: 1, size: 1, baseCost: 400,
     inputs: { power: 1 }, outputs: { personnel: 3 }, moraleOutput: 0,
     blurb: 'Recruits new Personnel. Needs Power.',
   },
   fuel_depot: {
-    id: 'fuel_depot', name: 'Fuel Depot', tier: 1, size: 1, baseCost: 600,
+    id: 'fuel_depot', name: 'Fuel Depot', tier: 1, size: 1, baseCost: 450,
     inputs: { power: 1 }, outputs: { fuel: 4 }, moraleOutput: 0,
     blurb: 'Pumps Fuel. Needs Power.',
   },
   motor_pool: {
-    id: 'motor_pool', name: 'Motor Pool', tier: 2, size: 1, baseCost: 1500,
+    id: 'motor_pool', name: 'Motor Pool', tier: 2, size: 1, baseCost: 1000,
     inputs: { fuel: 3, personnel: 2 }, outputs: { logistics: 4 }, moraleOutput: 0,
     blurb: 'Converts Fuel + Personnel into Logistics.',
   },
   training_ground: {
-    id: 'training_ground', name: 'Training Ground', tier: 2, size: 1, baseCost: 1800,
+    id: 'training_ground', name: 'Training Ground', tier: 2, size: 1, baseCost: 1100,
     inputs: { personnel: 3, power: 2 }, outputs: { trainedPersonnel: 2 }, moraleOutput: 2,
     blurb: 'Converts Personnel into Trained Personnel. Boosts Morale.',
   },
   mess_hall: {
-    id: 'mess_hall', name: 'Mess Hall / PX', tier: 2, size: 1, baseCost: 1200,
+    id: 'mess_hall', name: 'Mess Hall / PX', tier: 2, size: 1, baseCost: 750,
     inputs: { personnel: 2, fuel: 1 }, outputs: {}, moraleOutput: 3,
     blurb: 'Feeds the base. Boosts Morale, no material output.',
   },
+  language_institute: {
+    id: 'language_institute', name: 'Language Institute', tier: 2, size: 1, baseCost: 2200,
+    inputs: { trainedPersonnel: 2 }, outputs: {}, moraleOutput: 0,
+    specialEffect: `+${Math.round(LANGUAGE_INSTITUTE_BONUS * 100)}% Duty Shift $/card`,
+    blurb: 'Trains translators. Raises Duty Shift cash-per-card, scaled by how well-supplied it is.',
+  },
   airfield: {
-    id: 'airfield', name: 'Airfield', tier: 3, size: 2, baseCost: 5000,
+    id: 'airfield', name: 'Airfield', tier: 3, size: 2, baseCost: 3800,
     inputs: { fuel: 4, trainedPersonnel: 3, logistics: 3 }, outputs: { money: 40, intel: 2 }, moraleOutput: 0,
     blurb: 'Revenue building. Needs Fuel + Trained Personnel + Logistics.',
   },
   command_center: {
-    id: 'command_center', name: 'Command Center', tier: 3, size: 2, baseCost: 8000,
+    id: 'command_center', name: 'Command Center', tier: 3, size: 2, baseCost: 6500,
     inputs: { intel: 2, trainedPersonnel: 2 }, outputs: { money: 60 }, moraleOutput: 0,
     blurb: 'Revenue building. Needs Intel + Trained Personnel. Grants a base-wide output bonus that scales with Morale.',
   },
   black_market: {
-    id: 'black_market', name: 'Black Market', tier: 3, size: 2, baseCost: 6000,
+    id: 'black_market', name: 'Black Market', tier: 3, size: 2, baseCost: 3200,
     inputs: { fuel: 5, logistics: 4 }, outputs: { money: 55 }, moraleOutput: 0,
-    blurb: 'Revenue building. Needs Fuel + Logistics. An alternate cash-out path that skips Trained Personnel and Intel entirely.',
+    blurb: 'Revenue building. Needs Fuel + Logistics. The cheapest cash-out path — skips Trained Personnel and Intel entirely.',
   },
   intel_brokerage: {
-    id: 'intel_brokerage', name: 'Intel Brokerage', tier: 3, size: 2, baseCost: 7000,
+    id: 'intel_brokerage', name: 'Intel Brokerage', tier: 3, size: 2, baseCost: 4400,
     inputs: { intel: 3, trainedPersonnel: 2 }, outputs: { money: 65 }, moraleOutput: 0,
     blurb: 'Revenue building. Needs Intel + Trained Personnel — competes directly with Command Center for both.',
   },
+  contractor_hq: {
+    id: 'contractor_hq', name: 'Contractor HQ', tier: 3, size: 2, baseCost: 5000,
+    inputs: { trainedPersonnel: 3, logistics: 5 }, outputs: { money: 70 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs Trained Personnel + Logistics — draws on both major intermediate pools at once.',
+  },
+  arms_export_terminal: {
+    id: 'arms_export_terminal', name: 'Arms Export Terminal', tier: 3, size: 2, baseCost: 4800,
+    inputs: { fuel: 6, trainedPersonnel: 2 }, outputs: { money: 72 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs Fuel + Trained Personnel. High yield, fuel-hungry.',
+  },
 };
 
-const BUILD_ORDER = ['solar_array', 'recruit_barracks', 'fuel_depot', 'motor_pool', 'training_ground', 'mess_hall', 'airfield', 'command_center', 'black_market', 'intel_brokerage'];
+const BUILD_ORDER = ['solar_array', 'recruit_barracks', 'fuel_depot', 'motor_pool', 'training_ground', 'mess_hall', 'language_institute', 'airfield', 'command_center', 'black_market', 'intel_brokerage', 'contractor_hq', 'arms_export_terminal'];
 
 // Precompute resource -> [producer types] / [consumer types], once.
 const BUILDING_PRODUCERS = {};
@@ -260,6 +278,16 @@ function simulateTick(st, dtMin) {
       if (!rate) continue;
       prod += n * rate * dtMin * finalThrottle[type] * multiplier;
     }
+    if (res === 'money' && st.army && st.army.levelsWon) {
+      // "Spoils of war": each cleared campaign level pays a small ongoing tribute, scaled by
+      // level number. Lives in the core tick (not a separate interval) so it accrues correctly
+      // during offline catch-up too, exactly like every other income source.
+      let spoils = 0;
+      for (const idStr in st.army.levelsWon) {
+        if (st.army.levelsWon[idStr]) spoils += Number(idStr) * SPOILS_PER_LEVEL;
+      }
+      prod += spoils * dtMin;
+    }
     let cons = 0;
     for (const type of (BUILDING_CONSUMERS[res] || [])) {
       const n = counts[type] || 0;
@@ -291,6 +319,13 @@ function getBuildingCost(type) {
 function getExpandCost() {
   const extra = state.unlockedCount - START_UNLOCKED_SIZE * START_UNLOCKED_SIZE;
   return Math.round(EXPAND_BASE_COST * Math.pow(EXPAND_SCALING, extra));
+}
+
+function getLanguageInstituteBonus() {
+  const n = countByType('language_institute');
+  if (n === 0) return 0;
+  const throttle = (state._lastThrottle && state._lastThrottle.language_institute !== undefined) ? state._lastThrottle.language_institute : 1;
+  return n * LANGUAGE_INSTITUTE_BONUS * throttle;
 }
 
 /* ----------------------------- GRID HELPERS ------------------------------ */
@@ -418,9 +453,9 @@ function renderGrid() {
 function shortCode(type) {
   return {
     solar_array: 'SOL', recruit_barracks: 'BAR', fuel_depot: 'FUE',
-    motor_pool: 'MTR', training_ground: 'TRN', mess_hall: 'PX',
+    motor_pool: 'MTR', training_ground: 'TRN', mess_hall: 'PX', language_institute: 'LNG',
     airfield: 'AIR', command_center: 'CMD',
-    black_market: 'BLK', intel_brokerage: 'INT',
+    black_market: 'BLK', intel_brokerage: 'INT', contractor_hq: 'PMC', arms_export_terminal: 'EXP',
   }[type] || '?';
 }
 
@@ -469,6 +504,7 @@ function renderBuildPanel() {
     for (const r in def.inputs) ioParts.push(`<span class="in">-${def.inputs[r]} ${RESOURCE_META[r].label}/min</span>`);
     for (const r in def.outputs) ioParts.push(`<span class="out">+${def.outputs[r]} ${RESOURCE_META[r].label}/min</span>`);
     if (def.moraleOutput) ioParts.push(`<span class="out">+${def.moraleOutput} Morale/min</span>`);
+    if (def.specialEffect) ioParts.push(`<span class="out">${def.specialEffect}</span>`);
     html += `<div class="${cls}" data-type="${type}">
       <div class="build-card-head">
         <span class="build-card-name">${def.name}</span>
@@ -517,6 +553,7 @@ function renderInfoPanel() {
       rows += `<div class="info-row"><span>${RESOURCE_META[r].label} out</span><span>${(def.outputs[r] * throttle * mult).toFixed(1)} / ${def.outputs[r]} per min</span></div>`;
     }
     if (def.moraleOutput) rows += `<div class="info-row"><span>Morale out</span><span>${(def.moraleOutput * throttle).toFixed(1)} / ${def.moraleOutput} per min</span></div>`;
+    if (def.specialEffect) rows += `<div class="info-row"><span>Effect</span><span>${def.specialEffect} (${pct}% active)</span></div>`;
     el.selectedInfo.innerHTML = `
       <div class="info-title">${def.name}</div>
       <div class="info-tier">Tier ${def.tier} &middot; ${def.blurb}</div>
@@ -646,7 +683,7 @@ function liveTick() {
 
 function computeRateReport() {
   // Sample instantaneous per-minute net rates by running a tiny probe tick without mutating real state.
-  const probe = JSON.parse(JSON.stringify({ buildings: state.buildings, resources: state.resources }));
+  const probe = JSON.parse(JSON.stringify({ buildings: state.buildings, resources: state.resources, army: state.army }));
   const before = { ...probe.resources };
   simulateTick(probe, 1 / 60); // 1 second worth
   const after = probe.resources;
@@ -866,4 +903,5 @@ window.Game = {
     el.cashValue && (el.cashValue.textContent = fmtMoney(state.resources.money));
   },
   fmtMoney,
+  getLanguageInstituteBonus,
 };

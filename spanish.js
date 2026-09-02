@@ -13,7 +13,11 @@ const GUIDED_SESSION_SIZE = 6;
 const ACCENT_KEYS_LOWER = ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü', '¿', '¡'];
 const ACCENT_KEYS_UPPER = ['Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ', 'Ü'];
 
-function cashForCard(setId) { return 5 + setId * 2; }
+function cashForCard(setId) {
+  const base = 5 + setId * 2;
+  const bonus = window.Game.getLanguageInstituteBonus ? window.Game.getLanguageInstituteBonus() : 0;
+  return Math.round(base * (1 + bonus));
+}
 
 function stripAccents(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
