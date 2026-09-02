@@ -252,6 +252,14 @@ h2:first-child { margin-top: 0; }
 .tile.b-language_institute { background: #4a3a6b; }
 .tile.b-contractor_hq { background: #6b3a1f; }
 .tile.b-arms_export_terminal { background: #8a4a12; }
+.tile.b-wind_farm { background: #8f7a1a; }
+.tile.b-aux_fuel_cache { background: #9a5620; }
+.tile.b-refinery { background: #4d4227; }
+.tile.b-recon_station { background: #206b52; }
+.tile.b-field_hospital { background: #1f6b6b; }
+.tile.b-war_college { background: #5c2e5c; }
+.tile.b-cyber_ops_center { background: #2f3d8a; }
+.tile.b-salvage_yard { background: #4a4a4a; }
 
 @keyframes pulse-outline {
   0%, 100% { outline-color: var(--accent); }
@@ -320,7 +328,7 @@ h2:first-child { margin-top: 0; }
 .info-tier { font-size: 10px; color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
 .info-row { display: flex; justify-content: space-between; gap: 10px; margin: 3px 0; font-family: var(--mono); font-size: 11.5px; }
 .info-row span:first-child { flex: 1 1 auto; min-width: 0; color: var(--text-dim); font-family: var(--sans); }
-.info-row span:last-child { flex: 0 0 auto; white-space: nowrap; text-align: right; }
+.info-row span:last-child { flex: 0 1 auto; text-align: right; }
 .info-throttle { margin: 10px 0; }
 .throttle-track { height: 8px; background: var(--bg-3); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
 .throttle-fill { height: 100%; background: var(--accent); }

@@ -15,6 +15,8 @@ const EXPAND_SCALING = 1.045;
 const COMMAND_CENTER_BONUS = 0.10; // +10% global output per Command Center at 100 morale
 const LANGUAGE_INSTITUTE_BONUS = 0.15; // +15% Duty Shift cash-per-card per Institute, scaled by its throttle
 const SPOILS_PER_LEVEL = 1.5; // $/min tribute per cleared campaign level, scaled by level number
+const FIELD_HOSPITAL_REGEN_BONUS = 0.5; // +50% Army HP regen rate per Hospital, scaled by its throttle
+const WAR_COLLEGE_XP_BONUS = 0.25; // +25% Army XP gain per College, scaled by its throttle
 const STARTING_CASH = 4000;
 const MAX_OFFLINE_SECONDS = 24 * 60 * 60;
 const OFFLINE_STEP_MIN = 1; // simulate offline time in 1-minute steps
@@ -40,6 +42,11 @@ const BUILDING_TYPES = {
     inputs: {}, outputs: { power: 5 }, moraleOutput: 0,
     blurb: 'Raw power generation. No inputs required.',
   },
+  wind_farm: {
+    id: 'wind_farm', name: 'Wind Farm', tier: 1, size: 1, baseCost: 250,
+    inputs: {}, outputs: { power: 2 }, moraleOutput: 0,
+    blurb: 'Raw power generation. Cheaper than a Solar Array but less efficient per building — a budget top-up, not a scaling play.',
+  },
   recruit_barracks: {
     id: 'recruit_barracks', name: 'Recruit Barracks', tier: 1, size: 1, baseCost: 400,
     inputs: { power: 1 }, outputs: { personnel: 3 }, moraleOutput: 0,
@@ -49,6 +56,11 @@ const BUILDING_TYPES = {
     id: 'fuel_depot', name: 'Fuel Depot', tier: 1, size: 1, baseCost: 450,
     inputs: { power: 1 }, outputs: { fuel: 4 }, moraleOutput: 0,
     blurb: 'Pumps Fuel. Needs Power.',
+  },
+  aux_fuel_cache: {
+    id: 'aux_fuel_cache', name: 'Auxiliary Fuel Cache', tier: 1, size: 1, baseCost: 300,
+    inputs: { power: 1 }, outputs: { fuel: 2 }, moraleOutput: 0,
+    blurb: 'Pumps Fuel. Needs Power. Cheaper than a Fuel Depot but less efficient per building.',
   },
   motor_pool: {
     id: 'motor_pool', name: 'Motor Pool', tier: 2, size: 1, baseCost: 1000,
@@ -70,6 +82,28 @@ const BUILDING_TYPES = {
     inputs: { trainedPersonnel: 2 }, outputs: {}, moraleOutput: 0,
     specialEffect: `+${Math.round(LANGUAGE_INSTITUTE_BONUS * 100)}% Duty Shift $/card`,
     blurb: 'Trains translators. Raises Duty Shift cash-per-card, scaled by how well-supplied it is.',
+  },
+  refinery: {
+    id: 'refinery', name: 'Refinery', tier: 2, size: 1, baseCost: 1300,
+    inputs: { power: 3, fuel: 4 }, outputs: { logistics: 5 }, moraleOutput: 0,
+    blurb: 'Converts Power + Fuel into Logistics. An alternate path that skips Personnel entirely.',
+  },
+  recon_station: {
+    id: 'recon_station', name: 'Recon Station', tier: 2, size: 1, baseCost: 1600,
+    inputs: { power: 2 }, outputs: { intel: 1 }, moraleOutput: 0,
+    blurb: 'Gathers Intel directly from Power — a slow trickle, but the only Intel source that doesn’t require an Airfield first.',
+  },
+  field_hospital: {
+    id: 'field_hospital', name: 'Field Hospital', tier: 2, size: 1, baseCost: 1800,
+    inputs: { trainedPersonnel: 1 }, outputs: {}, moraleOutput: 0,
+    specialEffect: `+${Math.round(FIELD_HOSPITAL_REGEN_BONUS * 100)}% Army HP regen`,
+    blurb: 'Speeds up how fast wounded Army units recover HP between deployments, scaled by how well-supplied it is.',
+  },
+  war_college: {
+    id: 'war_college', name: 'War College', tier: 2, size: 1, baseCost: 2200,
+    inputs: { trainedPersonnel: 2 }, outputs: {}, moraleOutput: 0,
+    specialEffect: `+${Math.round(WAR_COLLEGE_XP_BONUS * 100)}% Army XP gain`,
+    blurb: 'Sharpens combat doctrine. Boosts XP earned by Army units in battle, scaled by how well-supplied it is.',
   },
   airfield: {
     id: 'airfield', name: 'Airfield', tier: 3, size: 2, baseCost: 3800,
@@ -101,9 +135,23 @@ const BUILDING_TYPES = {
     inputs: { fuel: 6, trainedPersonnel: 2 }, outputs: { money: 72 }, moraleOutput: 0,
     blurb: 'Revenue building. Needs Fuel + Trained Personnel. High yield, fuel-hungry.',
   },
+  cyber_ops_center: {
+    id: 'cyber_ops_center', name: 'Cyber Operations Center', tier: 3, size: 2, baseCost: 5600,
+    inputs: { intel: 4, power: 5 }, outputs: { money: 85 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs Intel + Power — the only revenue building that draws on Power directly.',
+  },
+  salvage_yard: {
+    id: 'salvage_yard', name: 'Salvage Yard', tier: 3, size: 2, baseCost: 2800,
+    inputs: { logistics: 6 }, outputs: { money: 45 }, moraleOutput: 0,
+    blurb: 'Revenue building. Needs only Logistics — the cheapest, simplest way into Tier 3.',
+  },
 };
 
-const BUILD_ORDER = ['solar_array', 'recruit_barracks', 'fuel_depot', 'motor_pool', 'training_ground', 'mess_hall', 'language_institute', 'airfield', 'command_center', 'black_market', 'intel_brokerage', 'contractor_hq', 'arms_export_terminal'];
+const BUILD_ORDER = [
+  'solar_array', 'wind_farm', 'recruit_barracks', 'fuel_depot', 'aux_fuel_cache',
+  'motor_pool', 'training_ground', 'mess_hall', 'language_institute', 'refinery', 'recon_station', 'field_hospital', 'war_college',
+  'airfield', 'command_center', 'black_market', 'intel_brokerage', 'contractor_hq', 'arms_export_terminal', 'cyber_ops_center', 'salvage_yard',
+];
 
 // Precompute resource -> [producer types] / [consumer types], once.
 const BUILDING_PRODUCERS = {};
@@ -452,10 +500,12 @@ function renderGrid() {
 
 function shortCode(type) {
   return {
-    solar_array: 'SOL', recruit_barracks: 'BAR', fuel_depot: 'FUE',
+    solar_array: 'SOL', wind_farm: 'WND', recruit_barracks: 'BAR', fuel_depot: 'FUE', aux_fuel_cache: 'AUX',
     motor_pool: 'MTR', training_ground: 'TRN', mess_hall: 'PX', language_institute: 'LNG',
+    refinery: 'REF', recon_station: 'RCN', field_hospital: 'HSP', war_college: 'WAR',
     airfield: 'AIR', command_center: 'CMD',
     black_market: 'BLK', intel_brokerage: 'INT', contractor_hq: 'PMC', arms_export_terminal: 'EXP',
+    cyber_ops_center: 'CYB', salvage_yard: 'SLV',
   }[type] || '?';
 }
 

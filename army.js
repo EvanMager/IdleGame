@@ -231,6 +231,21 @@ function equipUnit(unitId, tierIndex) {
   showArmyToast(`${tier.label} equipped on ${unit.name}.`, 'success');
 }
 
+/* ---------------------------- BASE-BUILDING BONUSES ---------------------------- */
+
+// Shared pattern with game.js's Language Institute bonus: count owned x its own
+// throttle x a flat per-unit bonus, so an under-supplied building gives a
+// proportionally smaller boost instead of an all-or-nothing switch.
+function getBaseBuildingBonus(state, type, bonusPerUnit) {
+  const n = state.buildings.filter((b) => b.type === type).length;
+  if (n === 0) return 0;
+  const throttle = (state._lastThrottle && state._lastThrottle[type] !== undefined) ? state._lastThrottle[type] : 1;
+  return n * bonusPerUnit * throttle;
+}
+
+function getFieldHospitalBonus(state) { return getBaseBuildingBonus(state, 'field_hospital', FIELD_HOSPITAL_REGEN_BONUS); }
+function getWarCollegeBonus(state) { return getBaseBuildingBonus(state, 'war_college', WAR_COLLEGE_XP_BONUS); }
+
 /* --------------------------------- COMBAT ------------------------------------ */
 
 function unitPower(unit, level) {
@@ -264,6 +279,7 @@ function resolveBattle(state, levelId) {
     : clamp(0.15 + (1 - ratio) * 1.0, 0.15, 1.8);
 
   const xpPool = victory ? level.xpReward : Math.round(level.xpReward * 0.25);
+  const xpMultiplier = 1 + getWarCollegeBonus(state);
   const events = [];
   let kiaCount = 0;
   let xpEarned = 0;
@@ -276,7 +292,7 @@ function resolveBattle(state, levelId) {
       kiaCount++;
       events.push({ name: u.name, type: u.type, kind: 'kia', dmg });
     } else {
-      const xpGain = Math.round(xpPool / living.length);
+      const xpGain = Math.round((xpPool / living.length) * xpMultiplier);
       const leveledUp = grantXp(u, xpGain);
       xpEarned += xpGain;
       events.push({ name: u.name, type: u.type, kind: 'hit', dmg, hpLeft: u.hp, maxHp: effMaxHp(u), xpGain, leveledUp });
@@ -310,12 +326,13 @@ function regenTick() {
   const state = window.Game && window.Game.getState();
   if (!state) return;
   const army = ensureState(state);
+  const rate = REGEN_RATE * (1 + getFieldHospitalBonus(state));
   let changed = false;
   for (const u of army.units) {
     if (!u.alive) continue;
     const max = effMaxHp(u);
     if (u.hp < max) {
-      u.hp = Math.min(max, u.hp + Math.max(1, Math.round(max * REGEN_RATE)));
+      u.hp = Math.min(max, u.hp + Math.max(1, Math.round(max * rate)));
       changed = true;
     }
   }
