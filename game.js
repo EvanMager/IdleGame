@@ -39,28 +39,28 @@ const RESOURCE_META = {
 const BUILDING_TYPES = {
   solar_array: {
     id: 'solar_array', name: 'Solar Array', tier: 1, size: 1, baseCost: 400,
-    inputs: {}, outputs: { power: 5 }, moraleOutput: 0,
-    blurb: 'Raw power generation. No inputs required.',
+    inputs: {}, outputs: { power: 5, money: 2 }, moraleOutput: 0,
+    blurb: 'Raw power generation. No inputs required. Sells surplus capacity back to the grid for a small trickle of cash.',
   },
   wind_farm: {
     id: 'wind_farm', name: 'Wind Farm', tier: 1, size: 1, baseCost: 250,
-    inputs: {}, outputs: { power: 2 }, moraleOutput: 0,
-    blurb: 'Raw power generation. Cheaper than a Solar Array but less efficient per building — a budget top-up, not a scaling play.',
+    inputs: {}, outputs: { power: 2, money: 1 }, moraleOutput: 0,
+    blurb: 'Raw power generation. Cheaper than a Solar Array but less efficient per building — a budget top-up, not a scaling play. Sells a little surplus power too.',
   },
   recruit_barracks: {
     id: 'recruit_barracks', name: 'Recruit Barracks', tier: 1, size: 1, baseCost: 400,
-    inputs: { power: 1 }, outputs: { personnel: 3 }, moraleOutput: 0,
-    blurb: 'Recruits new Personnel. Needs Power.',
+    inputs: { power: 1 }, outputs: { personnel: 3, money: 2 }, moraleOutput: 0,
+    blurb: 'Recruits new Personnel. Needs Power. Also draws a small recruiting stipend.',
   },
   fuel_depot: {
     id: 'fuel_depot', name: 'Fuel Depot', tier: 1, size: 1, baseCost: 450,
-    inputs: { power: 1 }, outputs: { fuel: 4 }, moraleOutput: 0,
-    blurb: 'Pumps Fuel. Needs Power.',
+    inputs: { power: 1 }, outputs: { fuel: 4, money: 2 }, moraleOutput: 0,
+    blurb: 'Pumps Fuel. Needs Power. Sells surplus fuel for a small trickle of cash.',
   },
   aux_fuel_cache: {
     id: 'aux_fuel_cache', name: 'Auxiliary Fuel Cache', tier: 1, size: 1, baseCost: 300,
-    inputs: { power: 1 }, outputs: { fuel: 2 }, moraleOutput: 0,
-    blurb: 'Pumps Fuel. Needs Power. Cheaper than a Fuel Depot but less efficient per building.',
+    inputs: { power: 1 }, outputs: { fuel: 2, money: 1 }, moraleOutput: 0,
+    blurb: 'Pumps Fuel. Needs Power. Cheaper than a Fuel Depot but less efficient per building. Sells a little surplus fuel too.',
   },
   motor_pool: {
     id: 'motor_pool', name: 'Motor Pool', tier: 2, size: 1, baseCost: 1000,
